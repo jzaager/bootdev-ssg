@@ -1,11 +1,11 @@
 import unittest
 
-from htmlnode import HTMLNode
+from htmlnode import HTMLNode, LeafNode
 
 
 class TestHTMLNode(unittest.TestCase):
 
-    print("\nTESTING...")
+    print("\nTESTING HTMLNode...")
     print("=================\n")
 
     def test_to_html_props(self):
@@ -54,5 +54,64 @@ class TestHTMLNode(unittest.TestCase):
             "HTMLNode(p, Use the force, children: None, {'class': 'primary'})"
         )
 
-    if __name__ == "__main__":
-        unittest.main()
+class TestLeafNode(unittest.TestCase):
+
+    print("\nTESTING LeafNode...")
+    print("=================\n")
+
+    def test_values(self):
+        node = LeafNode(
+            "div",
+            "This is my div, song",
+            {'class': 'secondary'}
+        )
+        self.assertEqual(
+            node.tag,
+            "div"
+        )
+        self.assertEqual(
+            node.value,
+            "This is my div, song",
+        )
+        self.assertEqual(
+            node.props_to_html(),
+            ' class="secondary"'
+        )
+        self.assertEqual(
+            node.children,
+            None
+        )
+
+    def test_to_html(self):
+        node_no_value = LeafNode(
+            "a",
+            None,
+            {'href': 'boot.dev'}
+        )
+        self.assertRaises(
+            ValueError,
+            node_no_value.to_html
+        )
+
+        node_no_tag = LeafNode(
+            None,
+            "Value without a tag",
+            None
+        )
+        self.assertEqual(
+            node_no_tag.to_html(),
+            node_no_tag.value
+        )
+
+        node = LeafNode(
+            "p",
+            "A full HTML leaf node!",
+            {'class': 'fw_bold'}
+        )
+        self.assertEqual(
+            node.to_html(),
+            f'<p class="fw_bold">A full HTML leaf node!</p>'
+        )
+
+if __name__ == "__main__":
+    unittest.main()
