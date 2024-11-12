@@ -1,6 +1,22 @@
+import re
+
 from textnode import TextNode, TextType
 
 
+# takes raw MD and returns a list of tuples based on image syntax: [(alt text, URL), (alt2, URL2)]
+# "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+# [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
+def extract_markdown_images(text):
+    return re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+# takes raw MD and returns a list of tuples based on link syntax: [(anchor text, URL), (anchor text2, URL2)]
+# "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+# [("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")]
+def extract_markdown_links(text):
+    return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+
+# converts MD TextNodes to bold, italic, or code types
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
 

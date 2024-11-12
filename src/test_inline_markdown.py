@@ -1,10 +1,10 @@
 import unittest
 
 from textnode import TextNode, TextType
-from split_nodes_delimiter import split_nodes_delimiter
+from inline_markdown import *
 
-class TestSplitNodes(unittest.TestCase):
-    
+class TestInlineMarkdown(unittest.TestCase):
+
     print("\nTESTING SplitNodes...")
     print("=================\n")
 
@@ -99,6 +99,82 @@ class TestSplitNodes(unittest.TestCase):
             "Invalid markdown syntax: no closing delimiter provided"
         )
 
+class TestRegexExtractions(unittest.TestCase):
 
-    if __name__ == "__main__":
-        unittest.main()
+    print("\nTESTING RegexExtractions...")
+    print("=================\n")
+
+    # START image extraction tests
+    def test_single_image_extraction(self):
+        text = "This is text with a single ![image](https://google.com)"
+        self.assertEqual(
+            extract_markdown_images(text),
+            [("image", "https://google.com")]
+        )
+
+    def test_double_image_extraction(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        self.assertEqual(
+            extract_markdown_images(text),
+            [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
+        )
+
+    def test_image_with_link_extraction(self):
+        text = "This is text with a [link](http://boot.dev) and an ![image](https://google.com)"
+        self.assertEqual(
+            extract_markdown_images(text),
+            [("image", "https://google.com")]
+        )
+
+    def test_image_between_links_extraction(self):
+        text = "This is text with a [link](http://boot.dev) and an ![image](https://google.com) and another [link](https://yahoo.com) and another ![image2](https://aol.com)"
+        self.assertEqual(
+            extract_markdown_images(text),
+            [("image", "https://google.com"), ("image2", "https://aol.com")]
+        )
+
+    def test_no_image_to_extract(self):
+        text = "Here is text without any image! [sneaky link](boot.dev)"
+        self.assertEqual(
+            extract_markdown_images(text),
+            []
+        )
+
+    # START link extraction tests
+    def test_link_extraction(self):
+        text = "This is text with a single [link](https://google.com)"
+        self.assertEqual(
+            extract_markdown_links(text),
+            [("link", "https://google.com")]
+        )
+
+    def test_double_link_extraction(self):
+        text = "This is text with a [rick roll](https://i.imgur.com/aKaOqIh.gif) and [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        self.assertEqual(
+            extract_markdown_links(text),
+            [("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")]
+        )
+
+    def test_link_with_image_extraction(self):
+        text = "This is text with an ![image](http://boot.dev) and a [link](https://google.com)"
+        self.assertEqual(
+            extract_markdown_links(text),
+            [("link", "https://google.com")]
+        )
+
+    def test_link_between_images_extraction(self):
+        text = "This is text with an ![image](http://boot.dev) and a [link](https://google.com) and another ![image](https://yahoo.com) and another [link2](https://aol.com)"
+        self.assertEqual(
+            extract_markdown_links(text),
+            [("link", "https://google.com"), ("link2", "https://aol.com")]
+        )
+
+    def test_no_link_to_extract(self):
+        text = "Here is text without any link! ![sneaky image](boot.dev)"
+        self.assertEqual(
+            extract_markdown_links(text),
+            []
+        )
+
+if __name__ == "__main__":
+    unittest.main()
