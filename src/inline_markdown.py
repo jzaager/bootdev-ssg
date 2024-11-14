@@ -15,6 +15,78 @@ def extract_markdown_images(text):
 def extract_markdown_links(text):
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
+# convert MD text nodes to text+image nodes 
+def split_nodes_image(old_nodes):
+    new_nodes = []
+
+    for node in old_nodes:
+        if node.text_type != "text":
+            new_nodes.append(node)
+            continue
+
+        # format == [(alt_text, link), (alt2, link2)...]
+        images = extract_markdown_images(node.text)
+        if len(images) == 0:
+            new_nodes.append(node)
+            continue
+
+        original_text = node.text
+        for alt_text, link in images:
+            # split the original_text on the markdown ![image](link) syntax, max once
+            sections = original_text.split(f"![{alt_text}]({link})", maxsplit=1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, image section not closed")
+
+            if sections[0] == "":
+                new_nodes.append(TextNode(alt_text, TextType.IMAGE, url=link))
+            else:
+                new_nodes.extend([
+                    TextNode(sections[0], TextType.TEXT),
+                    TextNode(alt_text, TextType.IMAGE, url=link)
+                ])
+            original_text = sections[1]
+
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
+
+    return new_nodes
+
+# convert MD text nodes to text+link nodes 
+def split_nodes_link(old_nodes):
+    new_nodes = []
+
+    for node in old_nodes:
+        if node.text_type != "text":
+            new_nodes.append(node)
+            continue
+
+        # format == [(text, link), (text2, link2)...]
+        links = extract_markdown_links(node.text)
+        if len(links) == 0:
+            new_nodes.append(TextNode(node.text, TextType.TEXT))
+            continue
+
+        original_text = node.text
+        for text, link in links:
+            # split the original_text on the markdown [text](link) syntax, max once
+            sections = original_text.split(f"[{text}]({link})", maxsplit=1)
+            if len(sections) != 2:
+                raise ValueError("Invalid markdown, link section not closed")
+
+            if sections[0] == "":
+                new_nodes.append(TextNode(text, TextType.LINK, url=link))
+            else:
+                new_nodes.extend([
+                    TextNode(sections[0], TextType.TEXT),
+                    TextNode(text, TextType.LINK, url=link)
+                ])
+            original_text = sections[1]
+
+        if original_text != "":
+            new_nodes.append(TextNode(original_text, TextType.TEXT))
+
+    return new_nodes
+
 
 # converts MD TextNodes to bold, italic, or code types
 def split_nodes_delimiter(old_nodes, delimiter, text_type):

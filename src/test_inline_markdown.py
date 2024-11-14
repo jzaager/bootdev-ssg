@@ -1,3 +1,4 @@
+from typing import Text
 import unittest
 
 from textnode import TextNode, TextType
@@ -175,6 +176,102 @@ class TestRegexExtractions(unittest.TestCase):
             extract_markdown_links(text),
             []
         )
+
+class TestSplitImages(unittest.TestCase):
+
+    print("\nTESTING SplitImages...")
+    print("=================\n")
+
+
+    def test_no_images(self):
+        node = TextNode("Here is text without any images! [sneaky link](https://boot.dev)", TextType.TEXT)
+        self.assertEqual(
+            split_nodes_image([node]),
+            [node]
+        )
+
+    def test_image_split(self):
+        node = TextNode("This is text with a single ![image](https://google.com)", TextType.TEXT)
+        self.assertEqual(
+            split_nodes_image([node]),
+            [
+                TextNode("This is text with a single ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, url="https://google.com")
+            ]
+        )
+
+    def test_double_image_split(self):
+        node = TextNode("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", TextType.TEXT)
+        self.assertEqual(
+            split_nodes_image([node]),
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("rick roll", TextType.IMAGE, url="https://i.imgur.com/aKaOqIh.gif"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("obi wan", TextType.IMAGE, url="https://i.imgur.com/fJRm4Vk.jpeg")
+            ]
+        )
+
+    def test_image_between_links_split(self):
+        node = TextNode("This is text with a [link](http://boot.dev) and an ![image](https://google.com) and another [link](https://yahoo.com) and another ![image2](https://aol.com)", TextType.TEXT)
+        self.assertEqual(
+            split_nodes_image([node]),
+            [
+                TextNode("This is text with a [link](http://boot.dev) and an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, url="https://google.com"),
+                TextNode(" and another [link](https://yahoo.com) and another ", TextType.TEXT),
+                TextNode("image2", TextType.IMAGE, url="https://aol.com"),
+            ]
+        )
+
+
+
+class TestSplitLinks(unittest.TestCase):
+
+    print("\nTESTING SplitLinks...")
+    print("=================\n")
+
+    def test_no_links(self):
+        node = TextNode("Here is text without any links! ![sneaky image](https://boot.dev)", TextType.TEXT)
+        self.assertEqual(
+            split_nodes_link([node]),
+            [node]
+        )
+
+    def test_link_split(self):
+        node = TextNode("This is text with a single [link](https://google.com)", TextType.TEXT)
+        self.assertEqual(
+            split_nodes_link([node]),
+            [
+                TextNode("This is text with a single ", TextType.TEXT),
+                TextNode("link", TextType.LINK, url="https://google.com")
+            ]
+        )
+
+    def test_double_link_split(self):
+        node = TextNode("This is text with a [rick roll](https://i.imgur.com/aKaOqIh.gif) and [obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", TextType.TEXT)
+        self.assertEqual(
+            split_nodes_link([node]),
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("rick roll", TextType.LINK, url="https://i.imgur.com/aKaOqIh.gif"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("obi wan", TextType.LINK, url="https://i.imgur.com/fJRm4Vk.jpeg")
+            ]
+        )
+
+    def test_link_between_images_split(self):
+        node = TextNode("This is text with an ![image](http://boot.dev) and a [link](https://google.com) and another ![image](https://yahoo.com) and another [link2](https://aol.com)", TextType.TEXT)
+        self.assertEqual(
+            split_nodes_link([node]),
+            [
+                TextNode("This is text with an ![image](http://boot.dev) and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, url="https://google.com"),
+                TextNode(" and another ![image](https://yahoo.com) and another ", TextType.TEXT),
+                TextNode("link2", TextType.LINK, url="https://aol.com"),
+            ]
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
