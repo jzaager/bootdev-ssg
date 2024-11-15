@@ -107,7 +107,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
         for i in range(len(sections)):
             if sections[i] == "":
                 continue
-                
+
             # odd sections are text while even are what
             # was split between the delimiters
             if i % 2 == 0:
@@ -117,3 +117,17 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 
         new_nodes.extend(split_nodes)
     return new_nodes
+
+
+def text_to_text_nodes(text):
+    final_nodes = [TextNode(text, TextType.TEXT)]
+
+    final_nodes = split_nodes_delimiter(final_nodes, "**", TextType.BOLD)
+    final_nodes = split_nodes_delimiter(final_nodes, "*", TextType.ITALIC)
+    final_nodes = split_nodes_delimiter(final_nodes, "`", TextType.CODE)
+    final_nodes = split_nodes_image(final_nodes)
+    final_nodes = split_nodes_link(final_nodes)
+
+    return final_nodes
+
+
