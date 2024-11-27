@@ -2,11 +2,12 @@ import os
 import shutil
 
 from copystatic import copy_dir_tree
-from generate_page import generate_page
+from generate_page import generate_pages_recursive
+
 
 dir_path_static = "./static"
 dir_path_public = "./public"
-dir_path_content = "./content/index.md"
+dir_path_content = "./content"
 dir_path_template = "./template.html"
 
 
@@ -18,7 +19,8 @@ def main():
     print("Copying files to public directory...")
     copy_dir_tree(dir_path_static, dir_path_public)
 
-    generate_page(dir_path_content, dir_path_template, dir_path_public)
+    print("Generating page...")
+    generate_pages_recursive(dir_path_content, dir_path_template, dir_path_public)
 
 
 if __name__ == "__main__":
